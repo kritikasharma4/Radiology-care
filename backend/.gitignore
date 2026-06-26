@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Data (DICOM files - don't commit patient data)
+data/cases/*
+!data/cases/.gitkeep
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Models (large files)
+*.pt
+*.pth
+*.onnx
