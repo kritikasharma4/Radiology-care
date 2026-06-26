@@ -138,4 +138,4 @@ def create_tables():
 
     conn.commit()
     conn.close()
-    print("✓ Tables created: cases, findings, feedback")
+    print("Tables created: cases, findings, feedback")

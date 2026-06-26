@@ -2,12 +2,21 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from db.connection import init_db
+from contextlib import asynccontextmanager
 import uvicorn
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    print("Database initialized")
+    print("Mammography AI Assistant running")
+    yield
 
 app = FastAPI(
     title="Mammography AI Assistant",
     description="Advanced Radiologist Assistance System",
-    version="0.1.0"
+    version="0.1.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -19,12 +28,6 @@ app.add_middleware(
 )
 
 app.mount("/data", StaticFiles(directory="data"), name="data")
-
-@app.on_event("startup")
-async def startup():
-    init_db()
-    print("✓ Database initialized")
-    print("✓ Mammography AI Assistant running")
 
 @app.get("/health")
 async def health_check():
