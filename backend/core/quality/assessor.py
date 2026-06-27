@@ -12,13 +12,13 @@ def assess(image_path: str) -> dict:
         return {"quality_score": 0, "error": "Could not read image"}
 
     flags = {
-        "motion_blur_detected":       _check_motion_blur(img),
-        "over_exposure_detected":     _check_over_exposure(img),
-        "under_exposure_detected":    _check_under_exposure(img),
-        "image_clipping_detected":    _check_clipping(img),
-        "wrong_positioning_detected": _check_positioning(img),
+        "motion_blur_detected":       bool(_check_motion_blur(img)),
+        "over_exposure_detected":     bool(_check_over_exposure(img)),
+        "under_exposure_detected":    bool(_check_under_exposure(img)),
+        "image_clipping_detected":    bool(_check_clipping(img)),
+        "wrong_positioning_detected": bool(_check_positioning(img)),
         "labels_covering_tissue":     False,
-        "missing_breast_tissue":      _check_missing_tissue(img),
+        "missing_breast_tissue":      bool(_check_missing_tissue(img)),
     }
 
     penalties = {

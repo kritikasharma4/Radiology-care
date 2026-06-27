@@ -79,7 +79,13 @@ export default function UploadPage() {
       const res = await uploadDicom(fd);
       navigate(`/analysis/${res.data.case_id}`);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Upload failed. Check backend is running.');
+      const detail = err.response?.data?.detail;
+      const msg = typeof detail === 'string'
+        ? detail
+        : Array.isArray(detail)
+          ? detail.map(d => d.msg).join(', ')
+          : `Upload failed (${err.response?.status || 'no response'}). Is the backend running on port 8000?`;
+      setError(msg);
     } finally {
       setUploading(false);
     }

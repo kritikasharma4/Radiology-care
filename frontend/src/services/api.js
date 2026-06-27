@@ -3,9 +3,8 @@ import axios from 'axios';
 const API = axios.create({ baseURL: 'http://localhost:8000' });
 
 export const uploadDicom = (formData) =>
-  API.post('/api/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  API.post('/api/upload', formData);
+  // Do NOT set Content-Type manually — axios auto-sets multipart/form-data with correct boundary
 
 export const getAnalysis = (caseId) =>
   API.get(`/api/analysis/${caseId}`);

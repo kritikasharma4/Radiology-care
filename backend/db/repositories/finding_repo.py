@@ -16,8 +16,7 @@ def create_finding(case_id: str, data: dict) -> str:
             bi_rads_suggestion, recommended_action,
             model_1_confidence, model_2_confidence, model_3_confidence,
             ensemble_agreement,
-            key_features_json, feature_importance_json,
-            radiologist_confirmed_bi_rads, radiologist_notes
+            key_features_json, feature_importance_json
         ) VALUES (
             :id, :case_id,
             :finding_type, :breast_side, :clock_position, :quadrant,
@@ -28,16 +27,9 @@ def create_finding(case_id: str, data: dict) -> str:
             :bi_rads_suggestion, :recommended_action,
             :model_1_confidence, :model_2_confidence, :model_3_confidence,
             :ensemble_agreement,
-            :key_features_json, :feature_importance_json,
-            :radiologist_confirmed_bi_rads, :radiologist_notes
+            :key_features_json, :feature_importance_json
         )
-    ''', {
-        **data,
-        "id": finding_id,
-        "case_id": case_id,
-        "radiologist_confirmed_bi_rads": data.get("radiologist_confirmed_bi_rads"),
-        "radiologist_notes": data.get("radiologist_notes"),
-    })
+    ''', {**data, "id": finding_id, "case_id": case_id})
     conn.commit()
     conn.close()
     return finding_id
