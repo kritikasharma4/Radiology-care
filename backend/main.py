@@ -5,6 +5,8 @@ from db.connection import init_db
 from contextlib import asynccontextmanager
 import uvicorn
 
+from api.routes import upload, analysis, cases, risk_profile, feedback
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
@@ -28,6 +30,12 @@ app.add_middleware(
 )
 
 app.mount("/data", StaticFiles(directory="data"), name="data")
+
+app.include_router(upload.router)
+app.include_router(analysis.router)
+app.include_router(cases.router)
+app.include_router(risk_profile.router)
+app.include_router(feedback.router)
 
 @app.get("/health")
 async def health_check():
