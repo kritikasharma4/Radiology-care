@@ -56,5 +56,6 @@ def get_analysis(case_id: str):
         # Findings
         "findings":                 findings,
         "finding_count":            len(findings),
-        "preprocessed_image":       case.get("preprocessed_image_path"),
+        "preprocessed_image":         case.get("preprocessed_image_path"),
+        "preprocessed_image_path":    case.get("preprocessed_image_path"),
     }
