@@ -29,7 +29,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if not path.startswith("/api/"):
             return await call_next(request)
 
-        expected_token = os.getenv("API_SECRET_KEY", "rc-demo-secret-2024")
+        expected_token = os.getenv("API_SECRET_KEY") or "rc-demo-secret-2024"
         auth_header    = request.headers.get("Authorization", "")
 
         if auth_header == f"Bearer {expected_token}":

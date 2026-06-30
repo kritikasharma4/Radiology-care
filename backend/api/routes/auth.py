@@ -12,9 +12,9 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 def login(body: LoginRequest):
-    expected_user = os.getenv("DEMO_USERNAME", "radiologist")
-    expected_pass = os.getenv("DEMO_PASSWORD", "radcare2024")
-    token         = os.getenv("API_SECRET_KEY", "rc-demo-secret-2024")
+    expected_user = os.getenv("DEMO_USERNAME") or "radiologist"
+    expected_pass = os.getenv("DEMO_PASSWORD") or "radcare2024"
+    token         = os.getenv("API_SECRET_KEY") or "rc-demo-secret-2024"
 
     if body.username != expected_user or body.password != expected_pass:
         raise HTTPException(status_code=401, detail="Invalid credentials")
