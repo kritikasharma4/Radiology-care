@@ -4,6 +4,7 @@ import { getCaseSlices } from '../services/api';
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
+const API_BASE    = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 const ZOOM_STEPS  = [1, 1.5, 2, 3, 4];
 const LOUPE_R     = 90;   // loupe radius px
 const LOUPE_ZOOM  = 3.5;  // magnification inside loupe
@@ -493,7 +494,7 @@ export default function SliceViewer({ caseId, caseData, seriesType, findings = [
       <div className="flex-1 bg-black flex flex-col min-w-0">
         {caseData.preprocessed_image_path ? (
           <AdvancedImageView
-            src={`http://localhost:8000/${caseData.preprocessed_image_path}`}
+            src={`${API_BASE}/${caseData.preprocessed_image_path}`}
             alt="Mammogram"
             findings={findings}
             onError={e => { e.target.style.display='none'; }}
@@ -524,7 +525,7 @@ export default function SliceViewer({ caseId, caseData, seriesType, findings = [
       <div className="flex-1 bg-black flex flex-col min-w-0">
         {caseData.preprocessed_image_path ? (
           <AdvancedImageView
-            src={`http://localhost:8000/${caseData.preprocessed_image_path}`}
+            src={`${API_BASE}/${caseData.preprocessed_image_path}`}
             alt="Mammogram"
             findings={findings}
             onError={e => { e.target.style.display='none'; }}
@@ -544,7 +545,7 @@ export default function SliceViewer({ caseId, caseData, seriesType, findings = [
     <div ref={containerRef} tabIndex={0} className="flex-1 bg-black flex flex-col outline-none min-w-0" onWheel={handleWheel}>
       {/* Advanced image viewer for current slice */}
       <AdvancedImageView
-        src={`http://localhost:8000${slices[current]}`}
+        src={`${API_BASE}${slices[current]}`}
         alt={`Slice ${current+1}`}
         findings={findings}
         onError={() => {}}
