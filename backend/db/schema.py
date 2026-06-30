@@ -55,6 +55,16 @@ def create_tables():
             dicom_file_path TEXT,
             preprocessed_image_path TEXT,
 
+            -- AI analysis metadata
+            overall_birads INTEGER,
+            overall_impression TEXT,
+            recommended_management TEXT,
+            bilateral_symmetry INTEGER DEFAULT 1,
+            nipple_changes INTEGER DEFAULT 0,
+            ai_provider TEXT DEFAULT 'mock',
+            ai_model TEXT,
+            is_mock INTEGER DEFAULT 1,
+
             -- Metadata
             is_demo_case INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -97,11 +107,19 @@ def create_tables():
             model_3_confidence REAL,
             ensemble_agreement TEXT,
 
+            -- Extended location
+            depth TEXT,
+
+            -- Calcification-specific
+            calcification_morphology TEXT,
+            calcification_distribution TEXT,
+
             -- Explainability
             heatmap_file_path TEXT,
             segmentation_mask_path TEXT,
             key_features_json TEXT,
             feature_importance_json TEXT,
+            ai_reasoning TEXT,
 
             -- Status
             is_validated INTEGER DEFAULT 0,
@@ -139,3 +157,164 @@ def create_tables():
     conn.commit()
     conn.close()
     print("Tables created: cases, findings, feedback")
+
+
+def migrate_add_review_columns():
+    """
+    Idempotent migration — adds Phase 3 radiologist review columns.
+    findings: review_status, reviewed_birads, reviewer_notes, reviewed_at, reviewed_by
+    cases: signed_off, signed_off_at, signed_off_by
+    """
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        cases_cols   = {r[1] for r in conn.execute("PRAGMA table_info(cases)").fetchall()}
+        finding_cols = {r[1] for r in conn.execute("PRAGMA table_info(findings)").fetchall()}
+
+        cases_new = {
+            "signed_off":     "INTEGER DEFAULT 0",
+            "signed_off_at":  "TEXT",
+            "signed_off_by":  "TEXT",
+        }
+        for col, typedef in cases_new.items():
+            if col not in cases_cols:
+                conn.execute(f"ALTER TABLE cases ADD COLUMN {col} {typedef}")
+
+        findings_new = {
+            "review_status":    "TEXT DEFAULT 'pending'",
+            "reviewed_birads":  "INTEGER",
+            "reviewer_notes":   "TEXT",
+            "reviewed_at":      "TEXT",
+            "reviewed_by":      "TEXT",
+        }
+        for col, typedef in findings_new.items():
+            if col not in finding_cols:
+                conn.execute(f"ALTER TABLE findings ADD COLUMN {col} {typedef}")
+
+        conn.commit()
+        print("Phase 3 review columns migrated.")
+    finally:
+        conn.close()
+
+
+def migrate_add_ai_columns():
+    """
+    Idempotent migration — adds AI analysis columns introduced in Phase 1.
+    Safe to run on an existing DB; skips columns that already exist.
+    """
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        cases_cols   = {r[1] for r in conn.execute("PRAGMA table_info(cases)").fetchall()}
+        finding_cols = {r[1] for r in conn.execute("PRAGMA table_info(findings)").fetchall()}
+
+        cases_new = {
+            "overall_birads":       "INTEGER",
+            "overall_impression":   "TEXT",
+            "recommended_management": "TEXT",
+            "bilateral_symmetry":   "INTEGER DEFAULT 1",
+            "nipple_changes":       "INTEGER DEFAULT 0",
+            "ai_provider":          "TEXT DEFAULT 'mock'",
+            "ai_model":             "TEXT",
+            "is_mock":              "INTEGER DEFAULT 1",
+            "series_type":          "TEXT DEFAULT '2d'",
+            "total_slices":         "INTEGER DEFAULT 1",
+        }
+        for col, typedef in cases_new.items():
+            if col not in cases_cols:
+                conn.execute(f"ALTER TABLE cases ADD COLUMN {col} {typedef}")
+
+        findings_new = {
+            "depth":                        "TEXT",
+            "calcification_morphology":     "TEXT",
+            "calcification_distribution":   "TEXT",
+            "ai_reasoning":                 "TEXT",
+        }
+        for col, typedef in findings_new.items():
+            if col not in finding_cols:
+                conn.execute(f"ALTER TABLE findings ADD COLUMN {col} {typedef}")
+
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def migrate_add_report_text():
+    """Idempotent — adds final_report_text column for radiologist-edited report."""
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(cases)").fetchall()}
+        if "final_report_text" not in cols:
+            conn.execute("ALTER TABLE cases ADD COLUMN final_report_text TEXT")
+            conn.commit()
+    finally:
+        conn.close()
+
+
+def migrate_add_mock_reason():
+    """Idempotent — adds mock_reason column to cases for tracking why AI fell back to mock."""
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(cases)").fetchall()}
+        if "mock_reason" not in cols:
+            conn.execute("ALTER TABLE cases ADD COLUMN mock_reason TEXT")
+            conn.commit()
+    finally:
+        conn.close()
+
+
+def migrate_add_bbox_column():
+    """Idempotent — adds bbox_json column for AI localization overlay."""
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(findings)").fetchall()}
+        if "bbox_json" not in cols:
+            conn.execute("ALTER TABLE findings ADD COLUMN bbox_json TEXT")
+            conn.commit()
+    finally:
+        conn.close()
+
+
+def migrate_add_cv_columns():
+    """Idempotent — adds Phase 4a CV detection columns to cases."""
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(cases)").fetchall()}
+        new_cols = {
+            "cv_model":           "TEXT",
+            "cv_suspicion_score": "REAL",
+            "cv_density_class":   "TEXT",
+            "cv_is_neural":       "INTEGER DEFAULT 0",
+        }
+        for col, typedef in new_cols.items():
+            if col not in cols:
+                conn.execute(f"ALTER TABLE cases ADD COLUMN {col} {typedef}")
+        conn.commit()
+        print("CV columns migrated.")
+    finally:
+        conn.close()
+
+
+def migrate_add_clinical_fields():
+    """
+    Idempotent migration — Phase 2c clinical features.
+    cases: referring_physician, study_type
+    findings: differential_diagnosis_json
+    """
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        cases_cols   = {r[1] for r in conn.execute("PRAGMA table_info(cases)").fetchall()}
+        finding_cols = {r[1] for r in conn.execute("PRAGMA table_info(findings)").fetchall()}
+
+        for col, typedef in {
+            "referring_physician": "TEXT",
+            "study_type":          "TEXT DEFAULT 'screening'",
+        }.items():
+            if col not in cases_cols:
+                conn.execute(f"ALTER TABLE cases ADD COLUMN {col} {typedef}")
+
+        if "differential_diagnosis_json" not in finding_cols:
+            conn.execute("ALTER TABLE findings ADD COLUMN differential_diagnosis_json TEXT")
+
+        conn.commit()
+        print("Clinical fields migration complete.")
+    finally:
+        conn.close()

@@ -20,35 +20,41 @@ def get_analysis(case_id: str):
 
     # Parse JSON fields stored as strings in SQLite
     for f in findings:
-        if isinstance(f.get("key_features_json"), str):
-            try:
-                f["key_features"] = json.loads(f["key_features_json"])
-            except Exception:
-                f["key_features"] = []
-        if isinstance(f.get("feature_importance_json"), str):
-            try:
-                f["feature_importance"] = json.loads(f["feature_importance_json"])
-            except Exception:
-                f["feature_importance"] = []
+        for json_field, parsed_key in [("key_features_json", "key_features"), ("feature_importance_json", "feature_importance")]:
+            if isinstance(f.get(json_field), str):
+                try:
+                    f[parsed_key] = json.loads(f[json_field])
+                except Exception:
+                    f[parsed_key] = []
 
-    # Determine overall urgency label
-    max_birads = max((f.get("bi_rads_suggestion", 1) for f in findings), default=1)
-    urgency = "routine"
-    if max_birads >= 5:
-        urgency = "urgent"
-    elif max_birads >= 4:
-        urgency = "concerning"
+    # Derive urgency from stored value or from max BI-RADS as fallback
+    urgency = case.get("overall_case_urgency") or "routine"
+    if urgency not in ("urgent", "concerning", "routine"):
+        max_birads = max((f.get("bi_rads_suggestion", 1) for f in findings), default=1)
+        urgency = "urgent" if max_birads >= 5 else "concerning" if max_birads >= 4 else "routine"
 
     return {
-        "case_id":          case_id,
-        "density_category": case.get("density_category"),
-        "density_confidence": case.get("density_confidence"),
-        "asymmetry_detected":    case.get("asymmetry_detected"),
-        "lymph_node_abnormal":   case.get("lymph_node_abnormal"),
-        "skin_changes_detected": case.get("skin_changes_detected"),
-        "edema_detected":        case.get("edema_detected"),
-        "overall_urgency":  urgency,
-        "findings":         findings,
-        "finding_count":    len(findings),
-        "preprocessed_image": case.get("preprocessed_image_path"),
+        "case_id":                  case_id,
+        # Study-level AI output
+        "density_category":         case.get("density_category"),
+        "density_confidence":       case.get("density_confidence"),
+        "overall_birads":           case.get("overall_birads"),
+        "overall_impression":       case.get("overall_impression"),
+        "recommended_management":   case.get("recommended_management"),
+        "bilateral_symmetry":       case.get("bilateral_symmetry"),
+        "asymmetry_detected":       case.get("asymmetry_detected"),
+        "lymph_node_abnormal":      case.get("lymph_node_abnormal"),
+        "skin_changes_detected":    case.get("skin_changes_detected"),
+        "nipple_changes":           case.get("nipple_changes"),
+        "edema_detected":           case.get("edema_detected"),
+        # AI provenance
+        "ai_provider":              case.get("ai_provider", "mock"),
+        "ai_model":                 case.get("ai_model"),
+        "is_mock":                  bool(case.get("is_mock", True)),
+        # Urgency
+        "overall_urgency":          urgency,
+        # Findings
+        "findings":                 findings,
+        "finding_count":            len(findings),
+        "preprocessed_image":       case.get("preprocessed_image_path"),
     }

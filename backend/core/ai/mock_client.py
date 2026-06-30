@@ -1,0 +1,150 @@
+import json
+
+# Realistic mock data keyed by urgency — used when no API key is configured
+_MOCK = {
+    "routine": {
+        "density_category":        "B",
+        "density_confidence":      0.91,
+        "overall_birads":          2,
+        "overall_impression":      "No suspicious findings. Bilateral mammogram demonstrates scattered fibroglandular densities with no discrete mass, architectural distortion, or suspicious calcifications identified.",
+        "recommended_management":  "routine_screening",
+        "bilateral_symmetry":      True,
+        "asymmetry_detected":      False,
+        "skin_changes":            False,
+        "nipple_changes":          False,
+        "lymph_node_status":       "normal",
+        "edema_detected":          False,
+        "findings":                [],
+    },
+    "concerning": {
+        "density_category":        "C",
+        "density_confidence":      0.88,
+        "overall_birads":          4,
+        "overall_impression":      "Irregular spiculated mass in the left upper outer quadrant at 10 o'clock, 4 cm from nipple, measuring approximately 8 mm — suspicious for malignancy.",
+        "recommended_management":  "tissue_sampling",
+        "bilateral_symmetry":      True,
+        "asymmetry_detected":      False,
+        "skin_changes":            False,
+        "nipple_changes":          False,
+        "lymph_node_status":       "normal",
+        "edema_detected":          False,
+        "findings": [
+            {
+                "finding_type":              "mass",
+                "breast_side":               "L",
+                "clock_position":            10,
+                "quadrant":                  "UOQ",
+                "depth":                     "middle",
+                "distance_from_nipple_mm":   40.0,
+                "size_length_mm":            8.5,
+                "size_width_mm":             7.2,
+                "size_area_mm2":             61.2,
+                "shape":                     "irregular",
+                "margin_type":               "spiculated",
+                "density_level":             "high",
+                "calcification_morphology":  None,
+                "calcification_distribution": None,
+                "malignancy_probability":    0.78,
+                "confidence_score":          0.88,
+                "bi_rads_suggestion":        4,
+                "recommended_action":        "Ultrasound-guided core needle biopsy",
+                "model_1_confidence":        0.88,
+                "model_2_confidence":        0.85,
+                "model_3_confidence":        0.82,
+                "ensemble_agreement":        "3/3",
+                "key_features_json":         json.dumps(["Spiculated margins", "Irregular shape", "High density"]),
+                "feature_importance_json":   json.dumps([0.85, 0.78, 0.72]),
+                "ai_reasoning":              "Spiculated margin and irregular shape are the two strongest independent predictors of malignancy on mammography. High density further elevates concern. BI-RADS 4B recommended.",
+            }
+        ],
+    },
+    "urgent": {
+        "density_category":        "D",
+        "density_confidence":      0.94,
+        "overall_birads":          5,
+        "overall_impression":      "Large irregular spiculated mass in the right upper outer quadrant with associated abnormal axillary lymphadenopathy — highly suspicious for malignancy requiring urgent biopsy.",
+        "recommended_management":  "urgent_tissue_sampling",
+        "bilateral_symmetry":      False,
+        "asymmetry_detected":      True,
+        "skin_changes":            False,
+        "nipple_changes":          False,
+        "lymph_node_status":       "abnormal",
+        "edema_detected":          False,
+        "findings": [
+            {
+                "finding_type":              "mass",
+                "breast_side":               "R",
+                "clock_position":            10,
+                "quadrant":                  "UOQ",
+                "depth":                     "middle",
+                "distance_from_nipple_mm":   35.0,
+                "size_length_mm":            15.2,
+                "size_width_mm":             12.8,
+                "size_area_mm2":             194.6,
+                "shape":                     "irregular",
+                "margin_type":               "spiculated",
+                "density_level":             "high",
+                "calcification_morphology":  None,
+                "calcification_distribution": None,
+                "malignancy_probability":    0.96,
+                "confidence_score":          0.94,
+                "bi_rads_suggestion":        5,
+                "recommended_action":        "Urgent core needle biopsy and surgical referral",
+                "model_1_confidence":        0.96,
+                "model_2_confidence":        0.93,
+                "model_3_confidence":        0.94,
+                "ensemble_agreement":        "3/3",
+                "key_features_json":         json.dumps(["Spiculated margins", "Irregular shape", "Large size >10mm", "High density", "Abnormal lymph node"]),
+                "feature_importance_json":   json.dumps([0.90, 0.85, 0.80, 0.75, 0.70]),
+                "ai_reasoning":              "Mass size >10mm, spiculated margins, irregular shape, and ipsilateral abnormal axillary lymph node together strongly indicate malignancy. BI-RADS 5 with urgent biopsy required.",
+            },
+            {
+                "finding_type":              "calcification",
+                "breast_side":               "R",
+                "clock_position":            2,
+                "quadrant":                  "UIQ",
+                "depth":                     "anterior",
+                "distance_from_nipple_mm":   25.0,
+                "size_length_mm":            3.2,
+                "size_width_mm":             2.8,
+                "size_area_mm2":             8.96,
+                "shape":                     None,
+                "margin_type":               None,
+                "density_level":             None,
+                "calcification_morphology":  "fine_pleomorphic",
+                "calcification_distribution": "grouped",
+                "malignancy_probability":    0.72,
+                "confidence_score":          0.87,
+                "bi_rads_suggestion":        4,
+                "recommended_action":        "Stereotactic core biopsy",
+                "model_1_confidence":        0.87,
+                "model_2_confidence":        0.84,
+                "model_3_confidence":        0.79,
+                "ensemble_agreement":        "3/3",
+                "key_features_json":         json.dumps(["Fine pleomorphic morphology", "Grouped distribution", "New vs prior unknown"]),
+                "feature_importance_json":   json.dumps([0.88, 0.76, 0.65]),
+                "ai_reasoning":              "Fine pleomorphic calcifications in a grouped distribution are associated with DCIS. Biopsy required to exclude malignancy.",
+            },
+        ],
+    },
+}
+
+
+class MockClient:
+    """
+    Fallback AI client used when no API key is configured.
+    Returns realistic hardcoded findings — clearly flagged as mock data in the response.
+    """
+
+    def __init__(self, reason="No API key configured"):
+        self.reason = reason
+
+    def analyze_mammogram(self, image_paths, patient_context, urgency_hint="concerning", cv_result=None, rag_context=None, confirmed_abnormal=False):
+        base = _MOCK.get(urgency_hint, _MOCK["concerning"])
+        return {
+            **base,
+            "ai_provider": "mock",
+            "ai_model":    "mock",
+            "is_mock":     True,
+            "mock_reason": self.reason,
+        }

@@ -8,17 +8,18 @@ aiofiles==23.2.1
 pydicom==2.4.3
 
 # Image Processing
-opencv-python==4.8.1.78
+opencv-python-headless==4.8.1.78
 Pillow==10.1.0
 numpy==1.26.2
 
-# AI/ML (install torch separately with: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu)
+# ML
 scikit-learn==1.3.2
-
-# Explainability
-matplotlib==3.8.2
 
 # Utilities
 pydantic==2.5.0
 python-dotenv==1.0.0
 requests==2.31.0
+
+# LLM providers
+anthropic>=0.40.0
+openai>=1.30.0
