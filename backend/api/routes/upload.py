@@ -2,7 +2,7 @@ import shutil
 from pathlib import Path
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException
 
-from config import CASES_DIR, BASE_DIR
+from config import CASES_DIR, BASE_DIR, DATA_DIR
 from core.dicom.validator import validate_dicom
 from core.dicom.parser import parse_metadata
 from core.dicom.preprocessor import extract_frames, detect_series_type_from_dicom, get_frame_count
@@ -75,7 +75,7 @@ async def upload_dicom(
         # Representative image = middle frame
         rep_frame       = frame_paths[len(frame_paths) // 2]
         preprocessed_abs  = rep_frame
-        preprocessed_path = Path(rep_frame).relative_to(BASE_DIR).as_posix()
+        preprocessed_path = Path(rep_frame).relative_to(DATA_DIR.parent).as_posix()
 
         # 6. Quality assessment on representative frame
         quality = assess(preprocessed_path)

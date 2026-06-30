@@ -4,7 +4,7 @@ import cv2
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-from config import CASES_DIR, BASE_DIR
+from config import CASES_DIR, BASE_DIR, DATA_DIR
 from core.quality.assessor import assess
 from core.clinical.risk_calculator import calculate_risk
 from core.ai.provider import get_client, select_images_for_analysis
@@ -123,7 +123,7 @@ def _process_patient(patient_dir, patient_meta=None):
         "previous_biopsy":        meta["previous_biopsy"],
     })
 
-    rep_rel = rep_dest.relative_to(BASE_DIR).as_posix()
+    rep_rel = rep_dest.relative_to(DATA_DIR.parent).as_posix()
 
     # Select images for LLM analysis (multiple slices for tomo)
     image_paths = select_images_for_analysis(case_dir, series_type, len(images))
