@@ -659,7 +659,7 @@ export default function AnalysisPage() {
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState(null);
   const [activeTab,     setActiveTab]     = useState('findings');
-  const [feedbackMap,   setFeedbackMap]   = useState({});
+  const [feedbackMap,   setFeedbackMap]   = useState({}); // eslint-disable-line no-unused-vars
   const [reviewMap,     setReviewMap]     = useState({});  // findingId → status
   const [signedOff,     setSignedOff]     = useState(false);
   const [signingOff,    setSigningOff]    = useState(false);
@@ -701,7 +701,7 @@ export default function AnalysisPage() {
       .finally(() => setLoading(false));
   }, [caseId]);
 
-  const handleFeedback = (findingId, action) =>
+  const handleFeedback = (findingId, action) => // eslint-disable-line no-unused-vars
     setFeedbackMap((m) => ({ ...m, [findingId]: action }));
 
   const handleReviewUpdate = (findingId, status) =>

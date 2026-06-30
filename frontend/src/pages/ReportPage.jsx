@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCaseDetail, signOffCase, saveReport, updateCaseAssessment } from '../services/api';
+import { getCaseDetail, signOffCase, saveReport } from '../services/api';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const BIRADS_COLOR = {
